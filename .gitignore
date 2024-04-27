@@ -1,0 +1,4 @@
+datasets/
+.venv/
+*.ipynb_checkpoints/
+*.ipynb
