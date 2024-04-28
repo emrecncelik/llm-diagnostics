@@ -1,10 +1,25 @@
 import io
 import os
 import requests
+import argparse
 import pandas as pd
 
 DATA_DIR = "datasets"
 DOWNLOAD = True
+
+parser = argparse.ArgumentParser(description="Download datasets script")
+parser.add_argument(
+    "--data_dir",
+    type=str,
+    default=DATA_DIR,
+    help="The directory to save the downloaded datasets",
+)
+parser.add_argument(
+    "--download",
+    action="store_true",
+    help="Flag to indicate whether to download the datasets",
+)
+
 
 ORIGINAL = [
     "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/ROLE-88/ROLE-88.tsv",
@@ -110,7 +125,9 @@ def format_role(file_dir) -> None:
 
 
 if __name__ == "__main__":
-    if DOWNLOAD:
+    args = parser.parse_args()
+
+    if args.download:
         for dataset in ORIGINAL:
             download_dataset(
                 dataset, format="tsv", data_dir=os.path.join(DATA_DIR, "original/")
