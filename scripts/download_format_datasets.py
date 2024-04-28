@@ -109,6 +109,15 @@ def format_negation(file_dir: str) -> None:
 
 
 def format_role(file_dir) -> None:
+    """
+    Formats the role dataset by splitting the first column into 'context' and 'expected' columns.
+
+    Args:
+        file_dir (str): The file directory of the dataset.
+
+    Returns:
+        None
+    """
     dataset = pd.read_csv(file_dir, header=None)
     dataset["context"] = ""
     dataset["expected"] = ""
