@@ -57,7 +57,7 @@ class NegationDataset(Dataset):
             raise NotImplementedError("Prompt-based tokenization not implemented")
 
     def __len__(self):
-        return len(self.contexts)
+        return len(self.contexts_tokenized)
 
     def __getitem__(self, idx):
         return (
