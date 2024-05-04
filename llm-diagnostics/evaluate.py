@@ -4,6 +4,21 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 
 
+def collate_fn(batch):
+    batch_dict = {}
+    for key in batch[0].keys():
+        batch_dict[key] = []
+
+    for single_dict in batch:
+        for key, value in single_dict.items():
+            batch_dict[key].append(value)
+
+    for key, value in batch_dict.items():
+        batch_dict[key] = torch.stack(value, dim=0)
+
+    return batch_dict
+
+
 def evaluate_accuracy(
     model,
     eval_dataset,
@@ -17,6 +32,7 @@ def evaluate_accuracy(
         eval_dataset,
         batch_size=batch_size,
         shuffle=False,
+        collate_fn=collate_fn,
     )
 
     model.to(device)
