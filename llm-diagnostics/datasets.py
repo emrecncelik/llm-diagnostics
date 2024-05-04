@@ -64,6 +64,6 @@ class NegationDataset(Dataset):
             {
                 "input_ids": self.input_ids[idx],
                 "attention_mask": self.attention_mask[idx],
+                "target_ids": self.target_ids[idx],
             },
-            self.target_ids[idx],
         )
