@@ -52,7 +52,7 @@ class NegationDataset(Dataset):
             )
             self.input_ids = contexts_tokenized["input_ids"]
             self.attention_mask = contexts_tokenized["attention_mask"]
-            self.target_ids = targets_tokenized["target_ids"]
+            self.target_ids = targets_tokenized["input_ids"]
         else:
             raise NotImplementedError("Prompt-based tokenization not implemented")
 
