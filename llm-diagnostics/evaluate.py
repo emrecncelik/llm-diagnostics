@@ -16,7 +16,7 @@ def evaluate_accuracy(
     eval_dataloader = DataLoader(
         eval_dataset,
         batch_size=batch_size,
-        shuflle=False,
+        shuffle=False,
     )
 
     model.to(device)
