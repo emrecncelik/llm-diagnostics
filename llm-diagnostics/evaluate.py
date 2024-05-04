@@ -43,9 +43,10 @@ def evaluate_accuracy(
             )  # get last token from each element in batch
             .indices.to("cpu")  # get vocab indices, move to cpu
             .numpy()
+            .tolist()
         )
 
-        all_targets.extend(target_ids.numpy())
+        all_targets.extend(target_ids.numpy().tolist())
         all_preds.extend(topk_preds)
 
     # Calculate top k accuracy
