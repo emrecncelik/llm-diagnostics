@@ -28,7 +28,7 @@ def evaluate_accuracy(
     ):
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
-        target_ids = batch["target_ids"].to(device)
+        target_ids = batch["target_ids"]
 
         with torch.no_grad():
             outputs = model(
@@ -45,7 +45,7 @@ def evaluate_accuracy(
             .numpy()
         )
 
-        all_targets.extend(target_ids.cpu().numpy())
+        all_targets.extend(target_ids.numpy())
         all_preds.extend(topk_preds)
 
     # Calculate top k accuracy
