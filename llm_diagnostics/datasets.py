@@ -23,7 +23,8 @@ class ClozeDataset(Dataset):
         context_col: str = "context",
         target_col: str = "expected",
         max_length: int = 50,
-        simplify_a_an: bool = False,
+        context_prefix: str = "",
+        simplify_a_an: str = None,
     ):
         # Tokenizer setup
         if tokenizer.pad_token is None:
@@ -37,11 +38,11 @@ class ClozeDataset(Dataset):
         else:
             self.dataset = pd.read_csv(filename)
 
-        contexts = self.dataset[context_col].tolist()
+        contexts = [context_prefix + c for c in self.dataset[context_col].tolist()]
         targets = self.dataset[target_col].tolist()
 
         if simplify_a_an:
-            contexts = [c.replace("(a|an)", "a ") for c in contexts]
+            contexts = [c.replace("(a|an)", simplify_a_an) for c in contexts]
 
         self.contexts = contexts
         self.targets = targets
@@ -59,6 +60,7 @@ class ClozeDataset(Dataset):
             padding="max_length",
             truncation=True,
             return_tensors="pt",
+            add_special_tokens=False,
         )
         tokenizer.padding_side = "left"
         self.input_ids = contexts_tokenized["input_ids"]
