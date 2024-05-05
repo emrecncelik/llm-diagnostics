@@ -26,7 +26,7 @@ def evaluate_accuracy(
     eval_dataset,
     device="cpu",
     batch_size=16,
-    topk=1,
+    topk=[1, 3, 5, 10, 20],
     output_predictions=True,
     progress_bar=True,
 ):
@@ -36,8 +36,8 @@ def evaluate_accuracy(
         shuffle=False,
         collate_fn=collate_fn,
     )
-
-    model.to(device)
+    if not next(model.parameters()).is_cuda:
+        model.to(device)
     model.eval()
 
     all_targets, all_preds = [], []
@@ -47,7 +47,6 @@ def evaluate_accuracy(
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
         target_ids = batch["target_ids"]
-
         with torch.no_grad():
             outputs = model(
                 input_ids=input_ids,
@@ -57,7 +56,7 @@ def evaluate_accuracy(
         topk_preds = (
             # get top k predictions
             torch.topk(
-                outputs.logits[:, -1, :], topk
+                outputs.logits[:, -1, :], max(topk)
             ).indices.to(  # get last token from each element in batch
                 "cpu"
             )  # get vocab indices, move to cpu
@@ -70,13 +69,16 @@ def evaluate_accuracy(
     all_preds = np.array(all_preds)
 
     # Calculate top k accuracy
-    hits = (all_targets == all_preds[:, :topk].T).any(axis=0)
-    accuracy = np.sum(hits) / len(all_targets)
+    accuracies = {}
+    for k in topk:
+        hits = (all_targets == all_preds[:, :k].T).any(axis=0)
+        accuracy = np.sum(hits) / len(all_targets)
+        accuracies[f"top{k}"] = accuracy
 
     if not output_predictions:
-        return accuracy
+        return accuracies
     else:
-        return accuracy, all_targets, all_preds
+        return accuracies, all_targets, all_preds
 
 
 def format_results(
@@ -85,13 +87,13 @@ def format_results(
     target_ids,
     pred_ids,
 ):
-    target_tokens, pred_tokens = tokenizer.batch_decode(
-        target_ids
-    ), tokenizer.batch_decode(pred_ids)
+    target_tokens, pred_tokens = tokenizer.convert_ids_to_tokens(target_ids), [
+        tokenizer.convert_ids_to_tokens(ids) for ids in pred_ids
+    ]
     results = pd.DataFrame(
         {
             "target_tokens": target_tokens,
-            "pred_tokens": (w.split() for w in pred_tokens),
+            "pred_tokens": pred_tokens,
         }
     )
 
