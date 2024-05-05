@@ -23,6 +23,7 @@ class NegationDataset(Dataset):
         context_col: str = "context_aff",
         target_col: str = "target_aff",
         max_length: int = 30,
+        replace_a_an: bool = False,
         prompt_template=None,
     ):
         # Tokenizer setup
@@ -39,6 +40,9 @@ class NegationDataset(Dataset):
 
         contexts = self.dataset[context_col].tolist()
         targets = self.dataset[target_col].tolist()
+
+        if replace_a_an:
+            contexts = [c.replace("(a|an)", "a ") for c in contexts]
         self.contexts = contexts
         self.targets = targets
 
@@ -49,15 +53,19 @@ class NegationDataset(Dataset):
                 padding="max_length",
                 return_tensors="pt",
             )
+            tokenizer.padding_side = "right"
             targets_tokenized = tokenizer(
                 targets,
                 max_length=2,  # assuming single token target, might change later
-                truncation=True,
+                padding="max_length",
                 return_tensors="pt",
             )
+            tokenizer.padding_side = "left"
             self.input_ids = contexts_tokenized["input_ids"]
             self.attention_mask = contexts_tokenized["attention_mask"]
-            self.target_ids = targets_tokenized["input_ids"][:, -1]  # ignore bos token
+            self.target_ids = targets_tokenized["input_ids"][
+                :, 0
+            ]  # get first token of target
         else:
             self.prompt_template = prompt_template
             raise NotImplementedError("Prompt-based tokenization not implemented")

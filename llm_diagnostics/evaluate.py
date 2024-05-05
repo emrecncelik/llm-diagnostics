@@ -42,14 +42,13 @@ def evaluate_accuracy(
             # get top k predictions
             torch.topk(
                 outputs.logits[:, -1, :], topk
-            )  # get last token from each element in batch
-            .indices.to("cpu")  # get vocab indices, move to cpu
-            .numpy()
-            .tolist()
+            ).indices.to(  # get last token from each element in batch
+                "cpu"
+            )  # get vocab indices, move to cpu
         )
 
         all_targets.extend(target_ids.numpy().tolist())
-        all_preds.extend(topk_preds)
+        all_preds.extend(topk_preds.numpy().tolist())
 
     all_targets = np.array(all_targets)
     all_preds = np.array(all_preds)
