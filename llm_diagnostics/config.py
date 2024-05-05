@@ -1,10 +1,10 @@
 DATASETS = {
-    "neg1500_gen": {
+    "neg1500gen": {
         "filename": "extended/NEG-1500-SIMP-GEN.txt",
         "context_col": ["context_aff", "context_neg"],
         "target_col": ["target_aff", "target_neg"],
     },
-    "neg1500_temp": {
+    "neg1500temp": {
         "filename": "extended/NEG-1500-SIMP-TEMP.txt",
         "context_col": ["context_aff", "context_neg"],
         "target_col": ["target_aff", "target_neg"],
