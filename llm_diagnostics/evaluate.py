@@ -3,6 +3,7 @@ import sys
 import torch
 import logging
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 from .datasets import collate_fn
 from torch.utils.data import DataLoader
@@ -76,3 +77,33 @@ def evaluate_accuracy(
         return accuracy
     else:
         return accuracy, all_targets, all_preds
+
+
+def format_results(
+    dataset,
+    tokenizer,
+    target_ids,
+    pred_ids,
+):
+    target_tokens, pred_tokens = tokenizer.batch_decode(
+        target_ids
+    ), tokenizer.batch_decode(pred_ids)
+    results = pd.DataFrame(
+        {
+            "target_tokens": target_tokens,
+            "pred_tokens": (w.split() for w in pred_tokens),
+        }
+    )
+
+    correct = []
+    for _, row in results.iterrows():
+        correct.append(row["target_tokens"] in row["pred_tokens"])
+
+    results["correct"] = correct
+    results["target"] = dataset.targets
+    results["context"] = dataset.contexts
+    return results
+
+
+def report_results():
+    pass
