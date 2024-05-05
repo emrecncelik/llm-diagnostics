@@ -47,9 +47,11 @@ def evaluate_accuracy(
             .numpy()
             .tolist()
         )
-
         all_targets.extend(target_ids.numpy().tolist())
         all_preds.extend(topk_preds)
+
+    all_targets = np.array(all_targets)
+    all_preds = np.array(all_preds)
 
     # Calculate top k accuracy
     hits = (all_targets == all_preds[:, :topk].T).any(axis=0)

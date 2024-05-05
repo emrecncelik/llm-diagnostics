@@ -46,14 +46,20 @@ class NegationDataset(Dataset):
                 contexts,
                 max_length=max_length,
                 padding="max_length",
+                return_tensors="pt",
             )
+            tokenizer._tokenizer.encode_special_tokens = False
             targets_tokenized = tokenizer(
                 targets,
-                padding=False,  # assuming single token target, might change later
+                max_length=2,  # assuming single token target, might change later
+                truncation=True,
+                return_tensors="pt",
             )
+            tokenizer._tokenizer.encode_special_tokens = True
+            print(targets_tokenized["input_ids"].shape)
             self.input_ids = contexts_tokenized["input_ids"]
             self.attention_mask = contexts_tokenized["attention_mask"]
-            self.target_ids = targets_tokenized["input_ids"]
+            self.target_ids = targets_tokenized["input_ids"][:, -1]  # ignore bos token
         else:
             raise NotImplementedError("Prompt-based tokenization not implemented")
 
