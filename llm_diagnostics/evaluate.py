@@ -1,8 +1,8 @@
 import torch
 import numpy as np
 from tqdm import tqdm
+from llm_diagnostics.datasets import collate_fn
 from torch.utils.data import DataLoader
-from datasets import collate_fn
 
 
 def evaluate_accuracy(
