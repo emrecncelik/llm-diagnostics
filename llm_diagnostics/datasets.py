@@ -20,6 +20,8 @@ class NegationDataset(Dataset):
         self,
         filename: str,
         tokenizer: AutoTokenizer,
+        context_col: str = "context_aff",
+        target_col: str = "target_aff",
         max_length: int = 30,
         prompt_template=None,
     ):
@@ -27,19 +29,18 @@ class NegationDataset(Dataset):
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
             logger.warning("Setting tokenizer's pad_token to eos_token")
+        tokenizer.padding_side = "left"
 
         # Load dataset
         if filename.endswith("tsv"):
             self.dataset = pd.read_csv(filename, sep="\t")
         else:
             self.dataset = pd.read_csv(filename)
-        contexts = (
-            self.dataset["context_aff"].tolist() + self.dataset["context_neg"].tolist()
-        )
-        targets = (
-            self.dataset["target_aff"].tolist() + self.dataset["target_neg"].tolist()
-        )
-        self.prompt_template = prompt_template
+
+        contexts = self.dataset[context_col].tolist()
+        targets = self.dataset[target_col].tolist()
+        self.contexts = contexts
+        self.targets = targets
 
         if prompt_template is None:
             contexts_tokenized = tokenizer(
@@ -48,19 +49,17 @@ class NegationDataset(Dataset):
                 padding="max_length",
                 return_tensors="pt",
             )
-            tokenizer._tokenizer.encode_special_tokens = False
             targets_tokenized = tokenizer(
                 targets,
                 max_length=2,  # assuming single token target, might change later
                 truncation=True,
                 return_tensors="pt",
             )
-            tokenizer._tokenizer.encode_special_tokens = True
-            print(targets_tokenized["input_ids"].shape)
             self.input_ids = contexts_tokenized["input_ids"]
             self.attention_mask = contexts_tokenized["attention_mask"]
             self.target_ids = targets_tokenized["input_ids"][:, -1]  # ignore bos token
         else:
+            self.prompt_template = prompt_template
             raise NotImplementedError("Prompt-based tokenization not implemented")
 
     def __len__(self):

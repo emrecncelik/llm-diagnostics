@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from tqdm import tqdm
-from llm_diagnostics.datasets import collate_fn
+from .datasets import collate_fn
 from torch.utils.data import DataLoader
 
 
@@ -47,6 +47,7 @@ def evaluate_accuracy(
             .numpy()
             .tolist()
         )
+
         all_targets.extend(target_ids.numpy().tolist())
         all_preds.extend(topk_preds)
 
