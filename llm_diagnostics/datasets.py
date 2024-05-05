@@ -15,16 +15,15 @@ logging.basicConfig(
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-class NegationDataset(Dataset):
+class ClozeDataset(Dataset):
     def __init__(
         self,
         filename: str,
         tokenizer: AutoTokenizer,
-        context_col: str = "context_aff",
-        target_col: str = "target_aff",
+        context_col: str = "context",
+        target_col: str = "expected",
         max_length: int = 50,
-        replace_a_an: bool = False,
-        prompt_template=None,
+        simplify_a_an: bool = False,
     ):
         # Tokenizer setup
         if tokenizer.pad_token is None:
@@ -41,36 +40,32 @@ class NegationDataset(Dataset):
         contexts = self.dataset[context_col].tolist()
         targets = self.dataset[target_col].tolist()
 
-        if replace_a_an:
+        if simplify_a_an:
             contexts = [c.replace("(a|an)", "a ") for c in contexts]
 
         self.contexts = contexts
         self.targets = targets
 
-        if prompt_template is None:
-            contexts_tokenized = tokenizer(
-                contexts,
-                max_length=max_length,
-                padding="max_length",
-                return_tensors="pt",
-            )
-            tokenizer.padding_side = "right"
-            targets_tokenized = tokenizer(
-                targets,
-                max_length=2,  # assuming single token target, might change later
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt",
-            )
-            tokenizer.padding_side = "left"
-            self.input_ids = contexts_tokenized["input_ids"]
-            self.attention_mask = contexts_tokenized["attention_mask"]
-            self.target_ids = targets_tokenized["input_ids"][
-                :, 0
-            ]  # get first token of target (since padding side was right)
-        else:
-            self.prompt_template = prompt_template
-            raise NotImplementedError("Prompt-based tokenization not implemented")
+        contexts_tokenized = tokenizer(
+            contexts,
+            max_length=max_length,
+            padding="max_length",
+            return_tensors="pt",
+        )
+        tokenizer.padding_side = "right"
+        targets_tokenized = tokenizer(
+            targets,
+            max_length=2,  # assuming single token target, might change later
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
+        )
+        tokenizer.padding_side = "left"
+        self.input_ids = contexts_tokenized["input_ids"]
+        self.attention_mask = contexts_tokenized["attention_mask"]
+        self.target_ids = targets_tokenized["input_ids"][
+            :, 0
+        ]  # get first token of target (since padding side was right)
 
     def __len__(self):
         return len(self.input_ids)
