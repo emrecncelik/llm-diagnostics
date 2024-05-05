@@ -1,8 +1,23 @@
+import os
+import sys
 import torch
+import logging
 import numpy as np
 from tqdm import tqdm
 from .datasets import collate_fn
 from torch.utils.data import DataLoader
+
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    stream=sys.stdout,
+)
+logger = logging.getLogger(os.path.basename(__file__))
+
+
+class Evaluator:
+    pass
 
 
 def evaluate_accuracy(

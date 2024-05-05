@@ -3,7 +3,7 @@ import sys
 import torch
 import logging
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 
 logging.basicConfig(
@@ -22,7 +22,7 @@ class NegationDataset(Dataset):
         tokenizer: AutoTokenizer,
         context_col: str = "context_aff",
         target_col: str = "target_aff",
-        max_length: int = 30,
+        max_length: int = 50,
         replace_a_an: bool = False,
         prompt_template=None,
     ):
@@ -43,6 +43,7 @@ class NegationDataset(Dataset):
 
         if replace_a_an:
             contexts = [c.replace("(a|an)", "a ") for c in contexts]
+
         self.contexts = contexts
         self.targets = targets
 
@@ -58,6 +59,7 @@ class NegationDataset(Dataset):
                 targets,
                 max_length=2,  # assuming single token target, might change later
                 padding="max_length",
+                truncation=True,
                 return_tensors="pt",
             )
             tokenizer.padding_side = "left"
@@ -65,7 +67,7 @@ class NegationDataset(Dataset):
             self.attention_mask = contexts_tokenized["attention_mask"]
             self.target_ids = targets_tokenized["input_ids"][
                 :, 0
-            ]  # get first token of target
+            ]  # get first token of target (since padding side was right)
         else:
             self.prompt_template = prompt_template
             raise NotImplementedError("Prompt-based tokenization not implemented")
