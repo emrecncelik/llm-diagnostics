@@ -52,6 +52,7 @@ def download_dataset(
     """
     dataset_name = dataset_url.split("/")[-1]
     print(f"Downloading {dataset_name}...")
+
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -137,14 +138,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.download:
+        original_dir = os.path.join(DATA_DIR, "original")
+        extended_dir = os.path.join(DATA_DIR, "extended")
         for dataset in ORIGINAL:
-            download_dataset(
-                dataset, format="tsv", data_dir=os.path.join(DATA_DIR, "original/")
-            )
+            if not os.path.exists(original_dir):
+                os.makedirs(original_dir)
+            download_dataset(dataset, format="tsv", data_dir=original_dir)
         for dataset in EXTENDED:
-            download_dataset(
-                dataset, format="txt", data_dir=os.path.join(DATA_DIR, "extended/")
-            )
+            if not os.path.exists(extended_dir):
+                os.makedirs(extended_dir)
+            download_dataset(dataset, format="txt", data_dir=extended_dir)
 
     for dataset in os.listdir(os.path.join(DATA_DIR, "extended")):
         if dataset.startswith("NEG"):
