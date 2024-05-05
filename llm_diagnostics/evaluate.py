@@ -2,21 +2,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-
-
-def collate_fn(batch):
-    batch_dict = {}
-    for key in batch[0].keys():
-        batch_dict[key] = []
-
-    for single_dict in batch:
-        for key, value in single_dict.items():
-            batch_dict[key].append(value)
-
-    for key, value in batch_dict.items():
-        batch_dict[key] = torch.stack(value, dim=0)
-
-    return batch_dict
+from datasets import collate_fn
 
 
 def evaluate_accuracy(

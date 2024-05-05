@@ -60,10 +60,23 @@ class NegationDataset(Dataset):
         return len(self.input_ids)
 
     def __getitem__(self, idx):
-        return (
-            {
-                "input_ids": self.input_ids[idx],
-                "attention_mask": self.attention_mask[idx],
-                "target_ids": self.target_ids[idx],
-            },
-        )
+        return {
+            "input_ids": self.input_ids[idx],
+            "attention_mask": self.attention_mask[idx],
+            "target_ids": self.target_ids[idx],
+        }
+
+
+def collate_fn(batch):
+    batch_dict = {}
+    for key in batch[0].keys():
+        batch_dict[key] = []
+
+    for single_dict in batch:
+        for key, value in single_dict.items():
+            batch_dict[key].append(value)
+
+    for key, value in batch_dict.items():
+        batch_dict[key] = torch.stack(value, dim=0)
+
+    return batch_dict
