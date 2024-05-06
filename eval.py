@@ -1,10 +1,6 @@
-import os
 import torch
 import argparse
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers import BitsAndBytesConfig
-from llm_diagnostics.evaluate import evaluate_accuracy, format_results, report_results
-from llm_diagnostics.datasets import ClozeDataset
+from llm_diagnostics.evaluate import LLMDiagnosticsEvaluator, format_results
 from llm_diagnostics.config import DATASETS
 
 
@@ -52,48 +48,29 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-
-    ######################################
-    ############# LOAD MODEL #############
-    ######################################
-    model_name = args.model_name
-    if args.quantization:
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
-        )
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name, quantization_config=bnb_config if args.quantization else None
+    evaluator = LLMDiagnosticsEvaluator(
+        "llama2_test", args.data_dir, output_dir="outputs"
     )
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-
-    ########################################
-    ############# LOAD DATASET #############
-    ########################################
-    filename = os.path.join(args.data_dir, DATASETS[args.dataset]["filename"])
-
-    if args.dataset.startswith("neg"):
-        is_negative = int(not args.is_affirmative)
-        dataset = ClozeDataset(
-            filename=filename,
-            tokenizer=tokenizer,
-            context_col=DATASETS[args.dataset]["context_col"][is_negative],
-            target_col=DATASETS[args.dataset]["target_col"][is_negative],
-            simplify_a_an=args.simplify_a_an,
-        )
-
-    ########################################
-    ############### EVALUATE ###############
-    ########################################
-    accuracy, target_ids, pred_ids = evaluate_accuracy(
-        model,
-        dataset,
-        device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    evaluator.load_model(args.model_name, quantization=args.quantization)
+    evaluator.load_dataset(
+        args.dataset,
+        is_affirmative=args.is_affirmative,
+        simplify_a_an=args.simplify_a_an,
+    )
+    targets, preds = evaluator.run_inference(
+        topk=[1, 3, 5, 10, 20],
+        batch_size=args.batch_size,
+        use_generate=False,  # use_generate
+        progress_bar=args.progress_bar,
+        device="cuda" if torch.cuda.is_available() else "cpu",
+    )
+    topk_accuracies = evaluator.compute_accuracy(
+        targets=targets,
+        preds=preds,
+        topk=[1, 3, 5, 10, 20],
     )
 
-    results = format_results(dataset, tokenizer, target_ids, pred_ids)
-    print(f"Accuracy: {accuracy}")
+    results = format_results(evaluator.dataset, evaluator.tokenizer, targets, preds)
+    print(f"Accuracy: {topk_accuracies}")
     print(results.head())
     results.to_csv(f"results_{args.dataset}.csv", index=False)
