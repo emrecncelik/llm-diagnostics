@@ -3,3 +3,5 @@ datasets/
 *.ipynb_checkpoints/
 *.ipynb
 __pycache__
+*.csv
+results/
