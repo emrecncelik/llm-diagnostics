@@ -30,6 +30,24 @@ def evaluate_accuracy(
     output_predictions=True,
     progress_bar=True,
 ):
+    """
+    Evaluate the accuracy of a model on a given dataset.
+
+    Args:
+        model (torch.nn.Module): The model to evaluate.
+        eval_dataset (llm_diagnostics.datasets.NegationDataset): The dataset to evaluate the model on.
+        device (str, optional): The device to use for evaluation (default: "cpu").
+        batch_size (int, optional): The batch size for evaluation (default: 16).
+        topk (list[int], optional): The list of top-k values to calculate accuracy for, calculates until the max k. (default: [1, 3, 5, 10, 20]).
+        output_predictions (bool, optional): Whether to output the predictions along with accuracies (default: True).
+        progress_bar (bool, optional): Whether to display a progress bar during evaluation (default: True).
+
+    Returns:
+        dict or tuple: If `output_predictions` is False, returns a dictionary of accuracies for each top-k value.
+                      If `output_predictions` is True, returns a tuple containing the accuracies, all target labels,
+                      and all predicted labels.
+    """
+
     eval_dataloader = DataLoader(
         eval_dataset,
         batch_size=batch_size,
@@ -87,6 +105,26 @@ def format_results(
     target_ids,
     pred_ids,
 ):
+    """
+    Formats the evaluation results into a DataFrame. Takes the output
+    of evaluate_accuracy and converts it into a DataFrame with the
+    following columns: target_tokens, pred_tokens, correct, target, context.
+
+    Args:
+        dataset (Dataset): The dataset used for evaluation.
+        tokenizer (Tokenizer): The tokenizer used to convert token IDs to tokens.
+        target_ids (list): The list of target token IDs.
+        pred_ids (list): The list of predicted token IDs.
+
+    Returns:
+        DataFrame: A DataFrame containing the formatted evaluation results.
+            The DataFrame has the following columns:
+            - target_tokens: The target tokens.
+            - pred_tokens: The predicted tokens.
+            - correct: A boolean indicating whether the prediction is correct.
+            - target: The target values from the dataset.
+            - context: The context values from the dataset.
+    """
     target_tokens, pred_tokens = tokenizer.convert_ids_to_tokens(target_ids), [
         tokenizer.convert_ids_to_tokens(ids) for ids in pred_ids
     ]
