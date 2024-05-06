@@ -3,6 +3,7 @@ import os
 import requests
 import argparse
 import pandas as pd
+from llm_diagnostics.config import DATASETS
 
 DATA_DIR = "datasets"
 DOWNLOAD = True
@@ -22,17 +23,15 @@ parser.add_argument(
 
 
 ORIGINAL = [
-    "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/ROLE-88/ROLE-88.tsv",
-    "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/NEG-136/NEG-136-NAT.tsv",
-    "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/NEG-136/NEG-136-SIMP.tsv",
-    "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/CPRAG-102/CPRAG-102.tsv",
-    "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/CPRAG-102/CPRAG-explanations.tsv",
+    DATASETS[dataset]["url"]
+    for dataset in DATASETS.keys()
+    if DATASETS[dataset]["type"] == "original"
 ]
 
 EXTENDED = [
-    "https://huggingface.co/datasets/text-machine-lab/NEG-1500-SIMP-TEMP/raw/main/NEG-1500-SIMP-TEMP.txt",
-    "https://huggingface.co/datasets/text-machine-lab/NEG-1500-SIMP-GEN/raw/main/NEG-1500-SIMP-GEN.txt",
-    "https://huggingface.co/datasets/text-machine-lab/ROLE-1500/raw/main/ROLE-1500.txt",
+    DATASETS[dataset]["url"]
+    for dataset in DATASETS.keys()
+    if DATASETS[dataset]["type"] == "extended"
 ]
 
 
