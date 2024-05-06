@@ -22,6 +22,11 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 
 class LLMDiagnosticsEvaluator:
+    # TODO: Add support for multiple targets (role)
+    # TODO: Implement sensitivity evaluation
+    # TODO: Implements save results
+    # TODO: Implement inference with generate() method
+    # TODO: Show types for function arguments and return values
     def __init__(
         self,
         experiment_name: str,
@@ -173,84 +178,6 @@ class LLMDiagnosticsEvaluator:
 
     def save_results(self):
         pass
-
-
-def evaluate_accuracy(
-    model,
-    eval_dataset,
-    device="cpu",
-    batch_size=16,
-    topk=[1, 3, 5, 10, 20],
-    output_predictions=True,
-    progress_bar=True,
-):
-    """
-    Evaluate the accuracy of a model on a given dataset.
-
-    Args:
-        model (torch.nn.Module): The model to evaluate.
-        eval_dataset (llm_diagnostics.datasets.NegationDataset): The dataset to evaluate the model on.
-        device (str, optional): The device to use for evaluation (default: "cpu").
-        batch_size (int, optional): The batch size for evaluation (default: 16).
-        topk (list[int], optional): The list of top-k values to calculate accuracy for, calculates until the max k. (default: [1, 3, 5, 10, 20]).
-        output_predictions (bool, optional): Whether to output the predictions along with accuracies (default: True).
-        progress_bar (bool, optional): Whether to display a progress bar during evaluation (default: True).
-
-    Returns:
-        dict or tuple: If `output_predictions` is False, returns a dictionary of accuracies for each top-k value.
-                      If `output_predictions` is True, returns a tuple containing the accuracies, all target labels,
-                      and all predicted labels.
-    """
-
-    eval_dataloader = DataLoader(
-        eval_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        collate_fn=collate_fn,
-    )
-    if not next(model.parameters()).is_cuda:
-        model.to(device)
-    model.eval()
-
-    all_targets, all_preds = [], []
-    for batch in tqdm(
-        eval_dataloader, desc="Running evaluation", disable=not progress_bar
-    ):
-        input_ids = batch["input_ids"].to(device)
-        attention_mask = batch["attention_mask"].to(device)
-        target_ids = batch["target_ids"]
-        with torch.no_grad():
-            outputs = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-            )
-
-        topk_preds = (
-            # get top k predictions
-            torch.topk(
-                outputs.logits[:, -1, :], max(topk)
-            ).indices.to(  # get last token from each element in batch
-                "cpu"
-            )  # get vocab indices, move to cpu
-        )
-
-        all_targets.extend(target_ids.numpy().tolist())
-        all_preds.extend(topk_preds.numpy().tolist())
-
-    all_targets = np.array(all_targets)
-    all_preds = np.array(all_preds)
-
-    # Calculate top k accuracy
-    accuracies = {}
-    for k in topk:
-        hits = (all_targets == all_preds[:, :k].T).any(axis=0)
-        accuracy = np.sum(hits) / len(all_targets)
-        accuracies[f"top{k}"] = accuracy
-
-    if not output_predictions:
-        return accuracies
-    else:
-        return accuracies, all_targets, all_preds
 
 
 def format_results(
