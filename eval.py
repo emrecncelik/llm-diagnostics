@@ -42,7 +42,12 @@ def get_args():
     parser.add_argument(
         "--output_predictions", action="store_true", help="Output predictions"
     )
-
+    parser.add_argument(
+        "--access_token",
+        default=None,
+        type=str,
+        help="HuggingFace token to access gated models",
+    )
     return parser.parse_args()
 
 
@@ -51,7 +56,9 @@ if __name__ == "__main__":
     evaluator = LLMDiagnosticsEvaluator(
         "llama2_test", args.data_dir, output_dir="outputs"
     )
-    evaluator.load_model(args.model_name, quantization=args.quantization)
+    evaluator.load_model(
+        args.model_name, quantization=args.quantization, token=args.access_token
+    )
     evaluator.load_dataset(
         args.dataset,
         is_affirmative=args.is_affirmative,
