@@ -1,8 +1,11 @@
 import torch
+import warnings
 import argparse
 from llm_diagnostics.evaluate import LLMDiagnosticsEvaluator, format_results
 from llm_diagnostics.config import DATASETS
 
+warnings.filterwarnings("ignore", category=FutureWarning) 
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 def get_args():
     """Set hyperparameters"""
