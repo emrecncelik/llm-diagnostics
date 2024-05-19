@@ -1,3 +1,15 @@
+RANDOM_MODELS = [
+    "yujiepan/tiny-random-bert",
+    "yujiepan/llama-2-tiny-random",
+    "yujiepan/llama-3-tiny-random",
+    "yujiepan/mistral-tiny-random",
+    "yujiepan/mixtral-8xtiny-random",
+    "yujiepan/mixtral-tiny-random",
+    "yujiepan/mamba-tiny-random",
+    "yujiepan/qwen-vl-tiny-random",
+    "yujiepan/qwen1.5-tiny-random",
+]
+
 DATASETS = {
     "neg1500gen": {
         "filename": "extended/NEG-1500-SIMP-GEN.txt",
