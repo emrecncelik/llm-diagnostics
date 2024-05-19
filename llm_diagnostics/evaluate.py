@@ -46,6 +46,7 @@ class LLMDiagnosticsEvaluator:
         model_name: str,
         quantization: bool,
         token: str,
+        cache_dir: str,
     ):
         if quantization:
             logger.info("Quantization is set to True, configuring quantization.")
@@ -61,10 +62,13 @@ class LLMDiagnosticsEvaluator:
             model_name,
             quantization_config=bnb_config if quantization else None,
             token=token,
+            cache_dir=cache_dir,
         )
 
         logger.info("Loading tokenizer.")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, token=token)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name, token=token, cache_dir=cache_dir
+        )
 
     def load_dataset(self, dataset, is_affirmative: bool, simplify_a_an: str):
         filename = os.path.join(self.data_dir, DATASETS[dataset]["filename"])

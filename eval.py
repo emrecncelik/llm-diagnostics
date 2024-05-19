@@ -34,7 +34,7 @@ def get_args():
         "--simplify_a_an",
         default=None,
         type=str,
-        help="Simplify (a|an) in context to this value",
+        help="Simplify (a|an) in context to this value (simplified depending on target if set to 'adaptive')",
     )
     parser.add_argument(
         "--batch_size",
@@ -44,7 +44,10 @@ def get_args():
     )
     parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
     parser.add_argument(
-        "--output_predictions", action="store_true", help="Output predictions"
+        "--hf_cache_dir",
+        default=None,
+        type=str,
+        help="HuggingFace cache directory to download/load models from.",
     )
     parser.add_argument(
         "--access_token",
