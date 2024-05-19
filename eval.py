@@ -50,7 +50,7 @@ def get_args():
         help="HuggingFace cache directory to download/load models from.",
     )
     parser.add_argument(
-        "--access_token",
+        "--hf_token",
         default=None,
         type=str,
         help="HuggingFace token to access gated models",
@@ -64,7 +64,10 @@ if __name__ == "__main__":
         "llama2_test", args.data_dir, output_dir="outputs"
     )
     evaluator.load_model(
-        args.model_name, quantization=args.quantization, token=args.access_token
+        args.model_name,
+        quantization=args.quantization,
+        token=args.hf_token,
+        cache_dir=args.hf_cache_dir,
     )
     evaluator.load_dataset(
         args.dataset,
