@@ -13,7 +13,12 @@ logging.basicConfig(
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-def simplify_a_an(contexts, targets, method: str):
+####################################################
+####################### DATA #######################
+####################################################
+
+
+def simplify_a_an_(contexts: list[str], targets: list[str], method: str):
     """
     Simplifies the determiner (a|an) in the given contexts based on the specified method.
 
@@ -54,11 +59,16 @@ def simplify_a_an(contexts, targets, method: str):
     return contexts
 
 
+#######################################################
+####################### RESULTS #######################
+#######################################################
+
+
 def format_results(
-    dataset,
+    dataset: pd.DataFrame,
     tokenizer,
-    target_ids,
-    pred_ids,
+    target_ids: list[int],
+    pred_ids: list[int],
 ):
     """
     Formats the evaluation results into a DataFrame. Takes the output
