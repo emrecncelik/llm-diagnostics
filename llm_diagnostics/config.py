@@ -27,8 +27,8 @@ DATASETS = {
     },
     "role1500": {
         "filename": "extended/ROLE-1500.txt",
-        "context_col": "context",
-        "target_col": "expected",
+        "context_col": ["context", "context_r"],
+        "target_col": ["expected", "expected_r"],
         "url": "https://huggingface.co/datasets/text-machine-lab/ROLE-1500/raw/main/ROLE-1500.txt",
         "type": "extended",
     },
@@ -48,8 +48,8 @@ DATASETS = {
     },
     "role88": {
         "filename": "original/ROLE-88.tsv",
-        "context_col": "context",
-        "target_col": "expected",
+        "context_col": ["context", "context_r"],
+        "target_col": ["expected", "expected_r"],
         "url": "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/ROLE-88/ROLE-88.tsv",
         "type": "original",
     },
