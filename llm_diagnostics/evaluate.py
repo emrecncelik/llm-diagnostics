@@ -102,16 +102,16 @@ class LLMDiagnosticsEvaluator:
                 attention_mask=attention_mask,
             )
 
+        logits = outputs.logits[:, -1, :]
         topk_preds = (
             # get top k predictions
             torch.topk(
-                outputs.logits[:, -1, :], max(topk)
-            ).indices.to(  # get last token from each element in batch
-                "cpu"
-            )  # get vocab indices, move to cpu
+                logits,
+                max(topk),  # get last token from each element in batch
+            ).indices  # get vocab indices, move to cpu
         )
 
-        return topk_preds
+        return topk_preds.detach().cpu(), logits.detach().cpu()
 
     def _run_inference_generate(self, input_ids, attention_mask, topk):
         raise NotImplementedError(
@@ -142,7 +142,7 @@ class LLMDiagnosticsEvaluator:
 
         # Store every target and prediction here,
         # since dataset sizes are small not much of a problem.
-        targets, preds = [], []
+        targets, preds, logits = [], [], []
 
         if not use_generate:
             logging.info("Getting predictions without generate() method.")
@@ -156,18 +156,19 @@ class LLMDiagnosticsEvaluator:
             target_ids = batch["target_ids"]
 
             if not use_generate:
-                topk_preds = self._run_inference_no_generate(
+                topk_preds, batch_logits = self._run_inference_no_generate(
                     input_ids, attention_mask, topk
                 )
             else:
-                topk_preds = self._run_inference_generate(
+                topk_preds, batch_logits = self._run_inference_generate(
                     input_ids, attention_mask, topk
                 )
 
             targets.extend(target_ids.numpy().tolist())
             preds.extend(topk_preds.numpy().tolist())
+            logits.extend(batch_logits.numpy().tolist())
 
-        return np.array(targets), np.array(preds)
+        return np.array(targets), np.array(preds), np.array(logits)
 
     def compute_accuracy(self, targets, preds, topk: list[int]):
         accuracies = {}
