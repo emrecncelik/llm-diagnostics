@@ -108,7 +108,7 @@ def format_negation(file_dir: str) -> None:
     dataset.to_csv(file_dir, index=False)
 
 
-def format_role(file_dir) -> None:
+def format_role(file_dir, is_extended: bool = True) -> None:
     """
     Formats the role dataset by splitting the first column into 'context' and 'expected' columns.
 
@@ -118,19 +118,45 @@ def format_role(file_dir) -> None:
     Returns:
         None
     """
-    dataset = pd.read_csv(file_dir, header=None)
-    dataset["context"] = ""
-    dataset["expected"] = ""
-    for i, row in dataset.iterrows():
-        context_split = row[0].split()
-        context = " ".join(context_split[:-1])
-        expected = context_split[-1]
+    if is_extended:
+        dataset = pd.read_csv(file_dir, header=None)
+        formatted_dataset = pd.DataFrame(
+            columns=["context", "context_r", "expected", "expected_r"]
+        )
 
-        dataset.loc[i, "context"] = context
-        dataset.loc[i, "expected"] = expected
-    dataset = dataset.drop(columns=[0, 1])
-    dataset = dataset.dropna()
-    dataset.to_csv(file_dir, index=False)
+        lcontext = []
+        lexpected = []
+        lcontext_r = []
+        lexpected_r = []
+        for i, row in dataset.iterrows():
+            if i % 2 == 0:
+                context_split = row[0].split()
+                lcontext.append(" ".join(context_split[:-1]))
+                lexpected.append(context_split[-1])
+            else:
+                context_split = row[0].split()
+                lcontext_r.append(" ".join(context_split[:-1]))
+                lexpected_r.append(context_split[-1])
+
+        formatted_dataset["context"] = lcontext
+        formatted_dataset["context_r"] = lcontext_r
+        formatted_dataset["expected"] = lexpected
+        formatted_dataset["expected_r"] = lexpected_r
+        formatted_dataset.to_csv(file_dir, index=False)
+    else:
+        dataset = pd.read_csv(file_dir, sep="\t")
+        context_normal = dataset.loc[range(0, len(dataset), 2), :].reset_index(
+            drop=True
+        )
+        context_reverse = dataset.loc[range(1, len(dataset), 2), :].reset_index(
+            drop=True
+        )
+        context_reverse = context_reverse.rename(
+            columns={"context": "context_r", "expected": "expected_r"}
+        )
+        context_reverse = context_reverse[["context_r", "expected_r"]]
+        dataset = context_normal.join(context_reverse)
+        dataset.to_csv(file_dir, index=False, sep="\t")
 
 
 if __name__ == "__main__":
@@ -147,6 +173,13 @@ if __name__ == "__main__":
             if not os.path.exists(extended_dir):
                 os.makedirs(extended_dir)
             download_dataset(dataset, format="txt", data_dir=extended_dir)
+
+    for dataset in os.listdir(os.path.join(DATA_DIR, "original")):
+        if dataset.startswith("ROLE"):
+            print(f"Formatting {dataset}...")
+            format_role(
+                os.path.join(DATA_DIR, f"original/{dataset}"), is_extended=False
+            )
 
     for dataset in os.listdir(os.path.join(DATA_DIR, "extended")):
         if dataset.startswith("NEG"):
