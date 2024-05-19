@@ -3,14 +3,13 @@ import sys
 import torch
 import logging
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
-from .datasets import collate_fn
 from torch.utils.data import DataLoader
 from transformers import BitsAndBytesConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from llm_diagnostics.datasets import ClozeDataset
-from llm_diagnostics.config import DATASETS
+from .datasets import ClozeDataset, collate_fn
+from .utils import format_results
+from .config import DATASETS
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -184,49 +183,3 @@ class LLMDiagnosticsEvaluator:
 
     def save_results(self):
         pass
-
-
-def format_results(
-    dataset,
-    tokenizer,
-    target_ids,
-    pred_ids,
-):
-    """
-    Formats the evaluation results into a DataFrame. Takes the output
-    of evaluate_accuracy and converts it into a DataFrame with the
-    following columns: target_tokens, pred_tokens, correct, target, context.
-
-    Args:
-        dataset (Dataset): The dataset used for evaluation.
-        tokenizer (Tokenizer): The tokenizer used to convert token IDs to tokens.
-        target_ids (list): The list of target token IDs.
-        pred_ids (list): The list of predicted token IDs.
-
-    Returns:
-        DataFrame: A DataFrame containing the formatted evaluation results.
-            The DataFrame has the following columns:
-            - target_tokens: The target tokens.
-            - pred_tokens: The predicted tokens.
-            - correct: A boolean indicating whether the prediction is correct.
-            - target: The target values from the dataset.
-            - context: The context values from the dataset.
-    """
-    target_tokens, pred_tokens = tokenizer.convert_ids_to_tokens(target_ids), [
-        tokenizer.convert_ids_to_tokens(ids) for ids in pred_ids
-    ]
-    results = pd.DataFrame(
-        {
-            "target_tokens": target_tokens,
-            "pred_tokens": pred_tokens,
-        }
-    )
-
-    correct = []
-    for _, row in results.iterrows():
-        correct.append(row["target_tokens"] in row["pred_tokens"])
-
-    results["correct"] = correct
-    results["target"] = dataset.targets
-    results["context"] = dataset.contexts
-    return results
