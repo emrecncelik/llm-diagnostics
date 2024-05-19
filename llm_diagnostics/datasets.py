@@ -43,17 +43,25 @@ class ClozeDataset(Dataset):
         targets = self.dataset[target_col].tolist()
 
         if simplify_a_an:
-            if simplify_a_an == "adaptive": # if adaptive, simplify (a|an) depending on target
-                logger.info("Adaptive simplification of (a|an) in context, depending on target.")
-                determinants = [] # store determinants for each target
+            if (
+                simplify_a_an == "adaptive"
+            ):  # if adaptive, simplify (a|an) depending on target
+                logger.info(
+                    "Adaptive simplification of (a|an) in context, depending on target."
+                )
+                determinants = []  # store determinants for each target
                 for t in targets:
-                    if re.match('[aeiou]',t): determinants.append('an') # if target starts with a vowel
-                    else: determinants.append("a") # if target starts with a consonant
-                
+                    if re.match("[aeiou]", t):
+                        determinants.append("an")  # if target starts with a vowel
+                    else:
+                        determinants.append("a")  # if target starts with a consonant
+
                 # update contexts
                 logger.info(f">> # of 'a': {determinants.count('a')}")
                 logger.info(f">> # of 'an': {determinants.count('an')}")
-                contexts = [c.replace("(a|an)", d) for c, d in zip(contexts, determinants)]
+                contexts = [
+                    c.replace("(a|an)", d) for c, d in zip(contexts, determinants)
+                ]
             else:
                 logger.info(f"Simplification of (a|an) to {simplify_a_an}.")
                 contexts = [c.replace("(a|an)", simplify_a_an) for c in contexts]
