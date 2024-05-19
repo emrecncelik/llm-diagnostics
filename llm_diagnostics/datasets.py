@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
-from .utils import simplify_a_an
+from .utils import simplify_a_an_
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -42,7 +42,7 @@ class ClozeDataset(Dataset):
         contexts = [context_prefix + c for c in self.dataset[context_col].tolist()]
         targets = self.dataset[target_col].tolist()
 
-        contexts = simplify_a_an(contexts, targets, simplify_a_an)
+        contexts = simplify_a_an_(contexts, targets, simplify_a_an)
 
         self.contexts = contexts
         self.targets = targets
