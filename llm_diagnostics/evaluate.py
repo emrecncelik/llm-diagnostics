@@ -62,11 +62,15 @@ class LLMDiagnosticsEvaluator:
             quantization_config=bnb_config if quantization else None,
             token=token,
             cache_dir=cache_dir,
+            trust_remote_code=True,
         )
 
         logger.info("Loading tokenizer.")
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_name, token=token, cache_dir=cache_dir
+            model_name,
+            token=token,
+            cache_dir=cache_dir,
+            trust_remote_code=True,
         )
 
     def load_dataset(self, dataset, is_affirmative: bool, simplify_a_an: str):
