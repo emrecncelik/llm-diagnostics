@@ -23,8 +23,10 @@ class ClozeDataset(Dataset):
         tokenizer: AutoTokenizer,
         context_col: str = "context",
         target_col: str = "expected",
+        masked: str = False,
         max_length: int = 50,
         context_prefix: str = "",
+        target_prefix: str = "",  # set to " " for mamba models
         simplify_a_an: str = None,
     ):
         # Tokenizer setup
@@ -39,23 +41,29 @@ class ClozeDataset(Dataset):
         else:
             self.dataset = pd.read_csv(filename)
 
-        contexts = [context_prefix + c for c in self.dataset[context_col].tolist()]
+        contexts = self.dataset[context_col].tolist()
         targets = self.dataset[target_col].tolist()
 
         contexts = simplify_a_an_(contexts, targets, simplify_a_an)
 
+        # add mask token for mlms
+        if masked:
+            contexts = [c + f" {tokenizer.mask_token}." for c in contexts]
+
+        contexts = [context_prefix + c for c in contexts]
+        targets = [target_prefix + t for t in targets]
         self.contexts = contexts
         self.targets = targets
 
         contexts_tokenized = tokenizer(
-            contexts,
+            self.contexts,
             max_length=max_length,
             padding="max_length",
             return_tensors="pt",
         )
         tokenizer.padding_side = "right"
         targets_tokenized = tokenizer(
-            targets,
+            self.targets,
             max_length=2,  # assuming single token target, might change later
             padding="max_length",
             truncation=True,
