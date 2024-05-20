@@ -89,6 +89,7 @@ class LLMDiagnosticsEvaluator:
             raise ValueError(f"Model type not found for model: {model_name}")
 
         logger.info("Loading tokenizer.")
+        self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name,
             token=token,
