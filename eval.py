@@ -67,6 +67,8 @@ if __name__ == "__main__":
     evaluator.load_dataset(
         args.dataset,
         simplify_a_an=args.simplify_a_an,
+        masked=True if evaluator.task_type == "maskedlm" else False,
+        target_prefix=" " if "mamba" in args.model_name else "",
     )
     targets, preds, logits = evaluator.run_inference(
         topk=[1, 3, 5, 10, 20],

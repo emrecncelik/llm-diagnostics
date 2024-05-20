@@ -96,9 +96,8 @@ class LLMDiagnosticsEvaluator:
             trust_remote_code=True,
         )
 
-    def load_dataset(self, dataset, simplify_a_an: str):
+    def load_dataset(self, dataset: str, **dataset_kwargs):
         filename = os.path.join(self.data_dir, DATASETS[dataset]["filename"])
-
         logger.info(f"Creating dataset instances for: {dataset} @ {filename}")
         for i in [0, 1]:
             logger.info(f"Loading dataset for {DATASETS[dataset]['context_col'][i]}")
@@ -108,10 +107,7 @@ class LLMDiagnosticsEvaluator:
                     tokenizer=self.tokenizer,
                     context_col=DATASETS[dataset]["context_col"][i],
                     target_col=DATASETS[dataset]["target_col"][i],
-                    simplify_a_an=simplify_a_an,
-                    target_prefix=(
-                        " " if "mamba" in self.model_name else ""
-                    ),  # for mamba models, gotta find a better solution
+                    **dataset_kwargs,
                 )
             )
         return self.datasets
