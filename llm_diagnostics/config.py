@@ -1,14 +1,40 @@
-RANDOM_MODELS = [
-    "yujiepan/tiny-random-bert",
-    "yujiepan/llama-2-tiny-random",
-    "yujiepan/llama-3-tiny-random",
-    "yujiepan/mistral-tiny-random",
-    "yujiepan/mixtral-8xtiny-random",
-    "yujiepan/mixtral-tiny-random",
-    "yujiepan/mamba-tiny-random",
-    "yujiepan/qwen-vl-tiny-random",
-    "yujiepan/qwen1.5-tiny-random",
-]
+MODELS = {
+    "causallm": [
+        "meta-llama/Llama-2-7b-hf",
+        "meta-llama/Meta-Llama-3-8B",
+        "mistralai/Mistral-7B-v0.1",
+        "mistralai/Mixtral-8x7B-v0.1",
+        "state-spaces/mamba-2.8b-hf",
+        "state-spaces/mamba-790m-hf",
+        "state-spaces/mamba-130m-hf",
+        "Qwen/Qwen1.5-1.8B",
+        "Qwen/Qwen1.5-7B",
+    ],
+    "maskedlm": [
+        "bert-base-uncased",
+        "google-bert/bert-base-uncased",
+        "google-bert/bert-large-uncased",
+        "albert/albert-base-v1",
+        "albert/albert-large-v1",
+    ],
+}
+
+RANDOM_MODELS = {
+    "causallm": [
+        "yujiepan/llama-2-tiny-random",
+        "yujiepan/llama-3-tiny-random",
+        "yujiepan/mistral-tiny-random",
+        "yujiepan/mixtral-8xtiny-random",
+        "yujiepan/mixtral-tiny-random",
+        "yujiepan/mamba-tiny-random",
+        "yujiepan/qwen-vl-tiny-random",
+        "yujiepan/qwen1.5-tiny-random",
+    ],
+    "maskedlm": [
+        "yujiepan/tiny-random-bert",
+    ],
+}
+
 
 DATASETS = {
     "neg1500gen": {
