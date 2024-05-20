@@ -181,7 +181,9 @@ class LLMDiagnosticsEvaluator:
             preds.extend(topk_preds.numpy().tolist())
             logits.extend(batch_logits.numpy().tolist())
 
-        return np.array(targets), np.array(preds), np.array(logits)
+        probs = torch.softmax(torch.tensor(logits), dim=-1).numpy()
+
+        return np.array(targets), np.array(preds), probs
 
     def compute_accuracy(self, targets, preds, topk: list[int]):
         accuracies = {}
@@ -214,15 +216,49 @@ class Metric:
             accuracies[f"top{k}"] = accuracy
         return accuracies
 
-    @staticmethod
-    def sensitivity_negation_ettinger(targets_aff, targets_neg, logits_aff, logits_neg):
-        pass
+    def _get_probabilities_for_indices(probs, targets):
+        return np.take_along_axis(probs, targets[:, np.newaxis], axis=1).squeeze()
 
     @staticmethod
-    def sensitivity_negation_shivagunde(preds_aff, preds_neg) -> float:
+    def sensitivity_negation_ettinger(
+        targets_aff: np.ndarray,
+        targets_neg: np.ndarray,
+        probs_aff: np.ndarray,
+        probs_neg: np.ndarray,
+        reverse: bool = False,
+    ) -> float:
         """
-        Calculate the sensitivity of negation the metric definition
-        from Shivagunde et al. (2023). Definition follows,
+        Calculate the sensitivity to negation using the metric definition
+        from Ettinger (2019). Definition follows as,
+        "Measuring the proportion of items in which the model
+        assigns higher probabilities to true completions than to false ones."
+
+        Args:
+            targets_aff (np.ndarray): Array of target indices for affirmative form with shape (N,).
+            targets_neg (np.ndarray): Array of target indices for negative form with shape (N,).
+            probs_aff (np.ndarray): Array of predicted probabilities for affirmative form with shape (N, Vocab).
+            probs_neg (np.ndarray): Array of predicted probabilities for negative form with shape (N, Vocab).
+            reverse (bool, optional): If True, calculate sensitivity in reverse direction.
+                                      Defaults to False.
+
+        Returns:
+            float: Sensitivity to negation using the Ettinger method.
+        """
+        aff = Metric._get_probabilities_for_indices(probs_aff, targets_aff)
+        neg = Metric._get_probabilities_for_indices(probs_neg, targets_neg)
+        return (
+            (aff > neg).sum() / len(targets_aff)
+            if not reverse
+            else (neg > aff).sum() / len(targets_aff)
+        )
+
+    @staticmethod
+    def sensitivity_negation_shivagunde(
+        preds_aff: np.ndarray, preds_neg: np.ndarray
+    ) -> float:
+        """
+        Calculate the sensitivity to negation the metric definition
+        from Shivagunde et al. (2023). Definition follows as,
         "Percentage of sentence pairs for which the top-1 prediction changed"
 
         Args:
