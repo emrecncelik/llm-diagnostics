@@ -97,7 +97,7 @@ class LLMDiagnosticsEvaluator:
             trust_remote_code=True,
         )
 
-    def load_dataset(self, dataset: str, **dataset_kwargs):
+    def load_dataset(self, dataset: str, **dataset_kwargs) -> list[ClozeDataset]:
         filename = os.path.join(self.data_dir, DATASETS[dataset]["filename"])
         logger.info(f"Creating dataset instances for: {dataset} @ {filename}")
         for i in [0, 1]:
@@ -113,7 +113,9 @@ class LLMDiagnosticsEvaluator:
             )
         return self.datasets
 
-    def _run_inference(self, input_ids, attention_mask, topk):
+    def _run_inference(
+        self, input_ids: torch.Tensor, attention_mask: torch.Tensor, topk: list[int]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         with torch.no_grad():
             outputs = self.model(
                 input_ids=input_ids,
