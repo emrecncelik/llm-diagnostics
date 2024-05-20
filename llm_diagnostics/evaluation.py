@@ -142,7 +142,6 @@ class LLMDiagnosticsEvaluator:
         self,
         topk: list[int],
         batch_size: int,
-        use_generate: bool,
         progress_bar: bool,
         device: str,
         negative_or_reversed: bool = False,
