@@ -156,6 +156,12 @@ def format_role(file_dir, is_extended: bool = True) -> None:
         )
         context_reverse = context_reverse[["context_r", "expected_r"]]
         dataset = context_normal.join(context_reverse)
+
+        # get only 1 expected from expected words separated by |
+        dataset["expected"] = dataset["expected"].apply(lambda x: x.split("|")[0])
+        # exclude item 118, which is a phrase not a word
+        dataset = dataset[dataset["item"] != "118-b"]
+
         dataset.to_csv(file_dir, index=False, sep="\t")
 
 
