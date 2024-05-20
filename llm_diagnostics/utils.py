@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 import pandas as pd
+from .config import MODELS, RANDOM_MODELS
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -11,6 +12,33 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 logger = logging.getLogger(os.path.basename(__file__))
+
+
+def identify_task_type(model_name: str):
+    """
+    Identifies the task type based on the model name.
+    Either "maskedlm" or "causallm" from MODELS and RANDOM_MODELS
+    in the config.py file.
+
+    Args:
+        model_name (str): The model name.
+
+    Returns:
+        str: The model type.
+
+    Raises:
+        ValueError: If the model type is not found.
+    """
+
+    for model_type, models in MODELS.items():
+        if model_name in models:
+            return model_type
+
+    for model_type, models in RANDOM_MODELS.items():
+        if model_name in models:
+            return model_type
+
+    raise ValueError(f"Model type not found for model: {model_name}")
 
 
 ####################################################
