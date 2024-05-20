@@ -119,7 +119,14 @@ class LLMDiagnosticsEvaluator:
                 attention_mask=attention_mask,
             )
 
-        logits = outputs.logits[:, -1, :]
+        if self.task_type == "maskedlm":
+            mask_indices = (input_ids == self.tokenizer.mask_token_id).nonzero()[:, -1]
+            logits = outputs.logits.gather(
+                1, mask_indices.view(-1, 1, 1).expand(-1, 1, outputs.logits.size()[-1])
+            ).squeeze(1)
+        elif self.task_type == "causallm":
+            logits = outputs.logits[:, -1, :]
+
         topk_preds = (
             # get top k predictions
             torch.topk(
