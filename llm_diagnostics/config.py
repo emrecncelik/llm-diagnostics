@@ -12,8 +12,8 @@ MODELS = {
     ],
     "maskedlm": [
         "bert-base-uncased",
-        "google-bert/bert-base-uncased",
-        "google-bert/bert-large-uncased",
+        "bert-large-uncased",
+        "distilbert-base-uncased",
         "albert/albert-base-v1",
         "albert/albert-large-v1",
     ],
