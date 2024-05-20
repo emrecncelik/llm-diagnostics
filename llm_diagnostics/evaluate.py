@@ -6,9 +6,15 @@ import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers import BitsAndBytesConfig
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    AutoModelForMaskedLM,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+)
 from .datasets import ClozeDataset, collate_fn
-from .utils import format_results
+from .utils import format_results, identify_task_type
 from .config import DATASETS
 
 logging.basicConfig(
@@ -32,13 +38,15 @@ class LLMDiagnosticsEvaluator:
         data_dir: str = "datasets",
         output_dir: str = "outputs",
     ):
-        self.model = None
-        self.tokenizer = None
-        self.dataset = None
+        self.model: PreTrainedModel = None
+        self.tokenizer: PreTrainedTokenizer = None
+        self.datasets: list[ClozeDataset] = []
 
-        self.experiment_name = experiment_name
-        self.data_dir = data_dir
-        self.output_dir = os.path.join(output_dir, experiment_name)
+        self.model_name: str = None
+        self.task_type: str = None
+        self.experiment_name: str = experiment_name
+        self.data_dir: str = data_dir
+        self.output_dir: str = os.path.join(output_dir, experiment_name)
 
     def load_model(
         self,
@@ -47,6 +55,10 @@ class LLMDiagnosticsEvaluator:
         token: str,
         cache_dir: str,
     ):
+        self.model_name = model_name
+        self.task_type = identify_task_type(model_name)
+        logger.info(f"Identified task type from model name: {self.task_type}")
+
         if quantization:
             logger.info("Quantization is set to True, configuring quantization.")
             bnb_config = BitsAndBytesConfig(
@@ -57,13 +69,24 @@ class LLMDiagnosticsEvaluator:
             )
 
         logger.info(f"Loading language model: {model_name}")
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            quantization_config=bnb_config if quantization else None,
-            token=token,
-            cache_dir=cache_dir,
-            trust_remote_code=True,
-        )
+        if "maskedlm" == self.task_type:
+            self.model = AutoModelForMaskedLM.from_pretrained(
+                model_name,
+                quantization_config=bnb_config if quantization else None,
+                token=token,
+                cache_dir=cache_dir,
+                trust_remote_code=True,
+            )
+        elif "causallm" == identify_task_type(model_name):
+            self.model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                quantization_config=bnb_config if quantization else None,
+                token=token,
+                cache_dir=cache_dir,
+                trust_remote_code=True,
+            )
+        else:
+            raise ValueError(f"Model type not found for model: {model_name}")
 
         logger.info("Loading tokenizer.")
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -73,27 +96,25 @@ class LLMDiagnosticsEvaluator:
             trust_remote_code=True,
         )
 
-    def load_dataset(self, dataset, is_affirmative: bool, simplify_a_an: str):
+    def load_dataset(self, dataset, simplify_a_an: str):
         filename = os.path.join(self.data_dir, DATASETS[dataset]["filename"])
 
-        logger.info(f"Processing dataset: {dataset} @ {filename}")
-
-        if dataset.startswith("neg"):
-            logger.info(
-                f"Dataset is a negation dataset. is_affirmative: {is_affirmative}"
+        logger.info(f"Creating dataset instances for: {dataset} @ {filename}")
+        for i in [0, 1]:
+            logger.info(f"Loading dataset for {DATASETS[dataset]['context_col'][i]}")
+            self.datasets.append(
+                ClozeDataset(
+                    filename=filename,
+                    tokenizer=self.tokenizer,
+                    context_col=DATASETS[dataset]["context_col"][i],
+                    target_col=DATASETS[dataset]["target_col"][i],
+                    simplify_a_an=simplify_a_an,
+                    target_prefix=(
+                        " " if "mamba" in self.model_name else ""
+                    ),  # for mamba models, gotta find a better solution
+                )
             )
-            is_negative = int(not is_affirmative)
-            self.dataset = ClozeDataset(
-                filename=filename,
-                tokenizer=self.tokenizer,
-                context_col=DATASETS[dataset]["context_col"][is_negative],
-                target_col=DATASETS[dataset]["target_col"][is_negative],
-                simplify_a_an=simplify_a_an,
-            )
-        else:
-            raise NotImplementedError("Only negation datasets are supported for now.")
-
-        return self.dataset
+        return self.datasets
 
     def _run_inference_no_generate(self, input_ids, attention_mask, topk):
         with torch.no_grad():
@@ -125,9 +146,10 @@ class LLMDiagnosticsEvaluator:
         use_generate: bool,
         progress_bar: bool,
         device: str,
+        negative_or_reversed: bool = False,
     ):
         eval_dataloader = DataLoader(
-            self.dataset,
+            self.datasets[int(negative_or_reversed)],
             batch_size=batch_size,
             shuffle=False,
             collate_fn=collate_fn,
@@ -183,8 +205,10 @@ class LLMDiagnosticsEvaluator:
     def evaluate_sensitivity(self):
         raise NotImplementedError("Sensitivity evaluation not supported yet.")
 
-    def format_results(self, targets, preds):
-        return format_results(self.dataset, self.tokenizer, targets, preds)
+    def format_results(self, targets, preds, negative_or_reversed):
+        return format_results(
+            self.datasets[int(negative_or_reversed)], self.tokenizer, targets, preds
+        )
 
     def save_results(self):
         pass
