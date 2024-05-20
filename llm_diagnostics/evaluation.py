@@ -203,7 +203,7 @@ class LLMDiagnosticsEvaluator:
 
 
 class Metric:
-    @classmethod
+    @staticmethod
     def topk_accuracy(targets, preds, topk: list[int]):
         accuracies = {}
         for k in topk:
@@ -214,14 +214,26 @@ class Metric:
             accuracies[f"top{k}"] = accuracy
         return accuracies
 
-    @classmethod
+    @staticmethod
     def sensitivity_negation_ettinger(targets_aff, targets_neg, logits_aff, logits_neg):
         pass
 
-    @classmethod
-    def sensitivity_negation_shivagunde(preds_aff, preds_neg):
-        pass
+    @staticmethod
+    def sensitivity_negation_shivagunde(preds_aff, preds_neg) -> float:
+        """
+        Calculate the sensitivity of negation the metric definition
+        from Shivagunde et al. (2023). Definition follows,
+        "Percentage of sentence pairs for which the top-1 prediction changed"
 
-    @classmethod
+        Args:
+            preds_aff (numpy.ndarray): Predictions for the affirmative form.
+            preds_neg (numpy.ndarray): Predictions for the negation form.
+
+        Returns:
+            float: Shivagunde sensitivity to negation.
+        """
+        return (preds_aff[:, 0] != preds_neg[:, 0]).sum() / len(preds_aff)
+
+    @staticmethod
     def sensitivity_role_ettinger(targets, targets_reversed, logits, logits_reversed):
         pass
