@@ -80,6 +80,9 @@ def simplify_a_an_(contexts: list[str], targets: list[str], method: str):
             logger.info(f">> # of 'a': {determinants.count('a')}")
             logger.info(f">> # of 'an': {determinants.count('an')}")
             contexts = [c.replace("(a|an)", d) for c, d in zip(contexts, determinants)]
+        elif method is None:
+            logger.info("No simplification of (a|an) in context.")
+            return contexts
         else:
             logger.info(f"Simplification of (a|an) to {method}.")
             contexts = [c.replace("(a|an)", method) for c in contexts]
