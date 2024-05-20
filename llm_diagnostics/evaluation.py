@@ -34,9 +34,7 @@ class LLMDiagnosticsEvaluator:
     # TODO: Show types for function arguments and return values
     def __init__(
         self,
-        experiment_name: str,
         data_dir: str = "datasets",
-        output_dir: str = "outputs",
     ):
         self.model: PreTrainedModel = None
         self.tokenizer: PreTrainedTokenizer = None
@@ -44,9 +42,7 @@ class LLMDiagnosticsEvaluator:
 
         self.model_name: str = None
         self.task_type: str = None
-        self.experiment_name: str = experiment_name
         self.data_dir: str = data_dir
-        self.output_dir: str = os.path.join(output_dir, experiment_name)
 
     def load_model(
         self,
@@ -185,24 +181,6 @@ class LLMDiagnosticsEvaluator:
 
         return np.array(targets), np.array(preds), probs
 
-    def compute_accuracy(self, targets, preds, topk: list[int]):
-        accuracies = {}
-        for k in topk:
-            hits = (targets == preds[:, :k].T).any(
-                axis=0
-            )  # thanks to sklearn, TODO: needs to change for multiple targets though
-            accuracy = np.sum(hits) / len(targets)
-            accuracies[f"top{k}"] = accuracy
-        return accuracies
-
-    def evaluate_sensitivity(self):
-        raise NotImplementedError("Sensitivity evaluation not supported yet.")
-
-    def format_results(self, targets, preds, negative_or_reversed):
-        return format_results(
-            self.datasets[int(negative_or_reversed)], self.tokenizer, targets, preds
-        )
-
 
 class Metric:
     @staticmethod
@@ -220,36 +198,53 @@ class Metric:
         return np.take_along_axis(probs, targets[:, np.newaxis], axis=1).squeeze()
 
     @staticmethod
-    def sensitivity_negation_ettinger(
-        targets_aff: np.ndarray,
-        targets_neg: np.ndarray,
-        probs_aff: np.ndarray,
-        probs_neg: np.ndarray,
+    def sensitivity_ettinger(
+        targets: np.ndarray,
+        targets_hat: np.ndarray,
+        probs: np.ndarray,
+        probs_hat: np.ndarray,
         reverse: bool = False,
+        threshold: float = 0,
+        eliminate_same: bool = False,
     ) -> float:
         """
-        Calculate the sensitivity to negation using the metric definition
+        Calculate the sensitivity to negation and role reversal using the metric definition
         from Ettinger (2019). Definition follows as,
+
+        NEGATION:
         "Measuring the proportion of items in which the model
         assigns higher probabilities to true completions than to false ones."
 
+        ROLE REVERSAL:
+        "We test BERT’s sensitivity to role reversals by comparing model probabilities
+        for a given completion (e.g., served) in the appropriate versus role-reversed
+        contexts. We again start by testing the percentage of items for which BERT assigns
+        a higher probability to the appropriate than to the inappropriate completiom"
+
         Args:
-            targets_aff (np.ndarray): Array of target indices for affirmative form with shape (N,).
-            targets_neg (np.ndarray): Array of target indices for negative form with shape (N,).
-            probs_aff (np.ndarray): Array of predicted probabilities for affirmative form with shape (N, Vocab).
-            probs_neg (np.ndarray): Array of predicted probabilities for negative form with shape (N, Vocab).
+            targets_aff (np.ndarray): Array of target indices for affirmative/original form with shape (N,).
+            targets_neg (np.ndarray): Array of target indices for negative/role reversed form with shape (N,).
+            probs_aff (np.ndarray): Array of predicted probabilities for affirmative/original form with shape (N, Vocab).
+            probs_neg (np.ndarray): Array of predicted probabilities for negative/role reversed form with shape (N, Vocab).
             reverse (bool, optional): If True, calculate sensitivity in reverse direction.
                                       Defaults to False.
 
         Returns:
-            float: Sensitivity to negation using the Ettinger method.
+            float: Sensitivity to negation/role reversal using the Ettinger method.
         """
-        aff = Metric._get_probabilities_for_indices(probs_aff, targets_aff)
-        neg = Metric._get_probabilities_for_indices(probs_neg, targets_neg)
+        if eliminate_same:
+            indices = targets != targets_hat
+            targets = targets[indices]
+            targets_hat = targets_hat[indices]
+            probs = probs[indices]
+            probs_hat = probs_hat[indices]
+
+        aff = Metric._get_probabilities_for_indices(probs, targets)
+        neg = Metric._get_probabilities_for_indices(probs_hat, targets_hat)
         return (
-            (aff > neg).sum() / len(targets_aff)
+            (aff > neg + threshold).sum() / len(targets)
             if not reverse
-            else (neg > aff).sum() / len(targets_aff)
+            else (neg > aff + threshold).sum() / len(targets)
         )
 
     @staticmethod
@@ -269,7 +264,3 @@ class Metric:
             float: Shivagunde sensitivity to negation.
         """
         return (preds_aff[:, 0] != preds_neg[:, 0]).sum() / len(preds_aff)
-
-    @staticmethod
-    def sensitivity_role_ettinger(targets, targets_reversed, logits, logits_reversed):
-        pass
