@@ -26,11 +26,6 @@ def get_args():
         help="Identifier of dataset to evaluate",
     )
     parser.add_argument(
-        "--is_affirmative",
-        action="store_true",
-        help="Evaluate affirmative or negative context",
-    )
-    parser.add_argument(
         "--simplify_a_an",
         default=None,
         type=str,
