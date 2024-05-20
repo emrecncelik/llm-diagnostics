@@ -113,7 +113,7 @@ class LLMDiagnosticsEvaluator:
             )
         return self.datasets
 
-    def _run_inference_no_generate(self, input_ids, attention_mask, topk):
+    def _run_inference(self, input_ids, attention_mask, topk):
         with torch.no_grad():
             outputs = self.model(
                 input_ids=input_ids,
@@ -137,11 +137,6 @@ class LLMDiagnosticsEvaluator:
         )
 
         return topk_preds.detach().cpu(), logits.detach().cpu()
-
-    def _run_inference_generate(self, input_ids, attention_mask, topk):
-        raise NotImplementedError(
-            "Evaluation using generate() method not supported yet."
-        )
 
     def run_inference(
         self,
@@ -170,10 +165,6 @@ class LLMDiagnosticsEvaluator:
         # since dataset sizes are small not much of a problem.
         targets, preds, logits = [], [], []
 
-        if not use_generate:
-            logging.info("Getting predictions without generate() method.")
-            logging.info("Only outputs the first token of the prediction.")
-
         for batch in tqdm(
             eval_dataloader, desc="Running inference...", disable=not progress_bar
         ):
@@ -181,14 +172,9 @@ class LLMDiagnosticsEvaluator:
             attention_mask = batch["attention_mask"].to(device)
             target_ids = batch["target_ids"]
 
-            if not use_generate:
-                topk_preds, batch_logits = self._run_inference_no_generate(
-                    input_ids, attention_mask, topk
-                )
-            else:
-                topk_preds, batch_logits = self._run_inference_generate(
-                    input_ids, attention_mask, topk
-                )
+            topk_preds, batch_logits = self._run_inference(
+                input_ids, attention_mask, topk
+            )
 
             targets.extend(target_ids.numpy().tolist())
             preds.extend(topk_preds.numpy().tolist())
