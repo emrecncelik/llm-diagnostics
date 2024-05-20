@@ -201,5 +201,27 @@ class LLMDiagnosticsEvaluator:
             self.datasets[int(negative_or_reversed)], self.tokenizer, targets, preds
         )
 
-    def save_results(self):
+
+class Metric:
+    @classmethod
+    def topk_accuracy(targets, preds, topk: list[int]):
+        accuracies = {}
+        for k in topk:
+            hits = (targets == preds[:, :k].T).any(
+                axis=0
+            )  # thanks to sklearn, TODO: needs to change for multiple targets though
+            accuracy = np.sum(hits) / len(targets)
+            accuracies[f"top{k}"] = accuracy
+        return accuracies
+
+    @classmethod
+    def sensitivity_negation_ettinger(targets_aff, targets_neg, logits_aff, logits_neg):
+        pass
+
+    @classmethod
+    def sensitivity_negation_shivagunde(preds_aff, preds_neg):
+        pass
+
+    @classmethod
+    def sensitivity_role_ettinger(targets, targets_reversed, logits, logits_reversed):
         pass
