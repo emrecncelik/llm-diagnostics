@@ -71,15 +71,15 @@ if __name__ == "__main__":
     )
     evaluator.load_dataset(
         args.dataset,
-        is_affirmative=args.is_affirmative,
         simplify_a_an=args.simplify_a_an,
     )
-    targets, preds = evaluator.run_inference(
+    targets, preds, logits = evaluator.run_inference(
         topk=[1, 3, 5, 10, 20],
         batch_size=args.batch_size,
         use_generate=False,  # use_generate
         progress_bar=args.progress_bar,
         device="cuda" if torch.cuda.is_available() else "cpu",
+        negative_or_reversed=False,
     )
     topk_accuracies = evaluator.compute_accuracy(
         targets=targets,
@@ -87,7 +87,8 @@ if __name__ == "__main__":
         topk=[1, 3, 5, 10, 20],
     )
 
-    results = format_results(evaluator.dataset, evaluator.tokenizer, targets, preds)
+    results = evaluator.format_results(targets, preds, False)
     print(f"Accuracy: {topk_accuracies}")
     print(results.head())
+    print(logits)
     results.to_csv(f"results_{args.dataset}.csv", index=False)
