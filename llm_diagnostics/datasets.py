@@ -23,7 +23,7 @@ class ClozeDataset(Dataset):
         tokenizer: AutoTokenizer,
         context_col: str = "context",
         target_col: str = "expected",
-        masked: str = False,
+        masked: str = False,  # not using Config.is_decoder cuz not accurate
         max_length: int = 50,
         context_prefix: str = "",
         target_prefix: str = "",  # set to " " for mamba models
