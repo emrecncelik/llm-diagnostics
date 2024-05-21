@@ -43,6 +43,7 @@ DATASETS = {
         "target_col": ["target_aff", "target_neg"],
         "url": "https://huggingface.co/datasets/text-machine-lab/NEG-1500-SIMP-GEN/raw/main/NEG-1500-SIMP-GEN.txt",
         "type": "extended",
+        "simplify_a_an": "adaptive",
     },
     "neg1500temp": {
         "filename": "extended/NEG-1500-SIMP-TEMP.txt",
@@ -50,6 +51,7 @@ DATASETS = {
         "target_col": ["target_aff", "target_neg"],
         "url": "https://huggingface.co/datasets/text-machine-lab/NEG-1500-SIMP-TEMP/raw/main/NEG-1500-SIMP-TEMP.txt",
         "type": "extended",
+        "simplify_a_an": "adaptive",
     },
     "role1500": {
         "filename": "extended/ROLE-1500.txt",
@@ -57,6 +59,7 @@ DATASETS = {
         "target_col": ["expected", "expected_r"],
         "url": "https://huggingface.co/datasets/text-machine-lab/ROLE-1500/raw/main/ROLE-1500.txt",
         "type": "extended",
+        "simplify_a_an": None,
     },
     "neg136nat": {
         "filename": "original/NEG-136-NAT.tsv",
@@ -64,6 +67,7 @@ DATASETS = {
         "target_col": ["target_aff", "target_neg"],
         "url": "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/NEG-136/NEG-136-NAT.tsv",
         "type": "original",
+        "simplify_a_an": None,
     },
     "neg136simp": {
         "filename": "original/NEG-136-SIMP.tsv",
@@ -71,6 +75,7 @@ DATASETS = {
         "target_col": ["target_aff", "target_neg"],
         "url": "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/NEG-136/NEG-136-SIMP.tsv",
         "type": "original",
+        "simplify_a_an": "adaptive",
     },
     "role88": {
         "filename": "original/ROLE-88.tsv",
@@ -78,5 +83,6 @@ DATASETS = {
         "target_col": ["expected", "expected_r"],
         "url": "https://raw.githubusercontent.com/aetting/lm-diagnostics/master/datasets/ROLE-88/ROLE-88.tsv",
         "type": "original",
+        "simplify_a_an": None,
     },
 }
