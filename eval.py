@@ -126,11 +126,11 @@ if __name__ == "__main__":
         if "neg" in dataset:
             result_string += f"Negation Sensitivity (Shivagunde et al., 2023): {negation_sensitivity}\n"
 
-        if not os.path.exists(f"{args.model_name.replace('/', '_')}"):
-            os.mkdir(f"{args.model_name.replace('/', '_')}")
+        if not os.path.exists(f"results/{args.model_name.replace('/', '_')}"):
+            os.makedirs(f"results/{args.model_name.replace('/', '_')}")
 
         with open(
-            f"{args.model_name.replace('/', '_')}/results_{dataset}.txt", "w"
+            f"results/{args.model_name.replace('/', '_')}/results_{dataset}.txt", "w"
         ) as f:
             f.write(result_string)
 
@@ -154,17 +154,19 @@ if __name__ == "__main__":
         print(prediction_results_hat.head())
 
         prediction_results.to_csv(
-            f"{args.model_name.replace('/', '_')}/predictions_{dataset}.csv",
+            f"results/{args.model_name.replace('/', '_')}/predictions_{dataset}.csv",
             index=False,
         )
         prediction_results_hat.to_csv(
-            f"{args.model_name.replace('/', '_')}/predictions_{dataset}_negative_or_reversed.csv",
+            f"results/{args.model_name.replace('/', '_')}/predictions_{dataset}_negative_or_reversed.csv",
             index=False,
         )
 
         import json
 
-        with open(f"{args.model_name.replace('/', '_')}/metrics.json", "w") as file:
+        with open(
+            f"results/{args.model_name.replace('/', '_')}/metrics.json", "w"
+        ) as file:
             json.dump(model_results, file)
 
         evaluator.datasets = []
