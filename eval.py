@@ -50,8 +50,9 @@ if __name__ == "__main__":
         token=args.hf_token,
         cache_dir=args.hf_cache_dir,
     )
-
+    model_results = {args.model_name: {}}
     for dataset in DATASETS.keys():
+        model_results[args.model_name][dataset] = {}
         datasets = evaluator.load_dataset(
             dataset=dataset,
             simplify_a_an=DATASETS[dataset]["simplify_a_an"],
@@ -89,10 +90,29 @@ if __name__ == "__main__":
         sensitivity_hat_th = Metric.sensitivity_ettinger(
             targets, targets_hat, probs, probs_hat, True, 0.01, True
         )
+        negation_sensitivity = None
         if "neg" in dataset:
             negation_sensitivity = Metric.sensitivity_negation_shivagunde(
                 preds, preds_hat
             )
+
+        for k in [1, 3, 5, 10, 20]:
+            model_results[args.model_name][dataset][f"accuracy_top{k}"] = accuracy[
+                f"top{k}"
+            ]
+            model_results[args.model_name][dataset][f"accuracy_top{k}_hat"] = (
+                accuracy_hat[f"top{k}"]
+            )
+
+        model_results[args.model_name][dataset]["sensitivity"] = sensitivity
+        model_results[args.model_name][dataset]["sensitivity_hat"] = sensitivity_hat
+        model_results[args.model_name][dataset]["sensitivity_th"] = sensitivity_th
+        model_results[args.model_name][dataset][
+            "sensitivity_hat_th"
+        ] = sensitivity_hat_th
+        model_results[args.model_name][dataset][
+            "shivagunde_sensitivity"
+        ] = negation_sensitivity
 
         result_string = ""
         result_string += f"Model: {args.model_name}\n"
@@ -141,5 +161,10 @@ if __name__ == "__main__":
             f"{args.model_name.replace('/', '_')}/predictions_{dataset}_negative_or_reversed.csv",
             index=False,
         )
+
+        import json
+
+        with open(f"{args.model_name.replace('/', '_')}/metrics.json", "w") as file:
+            json.dump(model_results, file)
 
         evaluator.datasets = []
