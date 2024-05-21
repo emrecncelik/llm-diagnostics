@@ -138,7 +138,7 @@ if __name__ == "__main__":
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
-        with open(os.path.join(outdir, f"/results_{dataset}.txt"), "w") as f:
+        with open(os.path.join(outdir, f"results_{dataset}.txt"), "w") as f:
             f.write(result_string)
 
         print(result_string)
@@ -161,17 +161,17 @@ if __name__ == "__main__":
         print(prediction_results_hat.head())
 
         prediction_results.to_csv(
-            os.path.join(outdir, f"/predictions_{dataset}.csv"),
+            os.path.join(outdir, f"predictions_{dataset}.csv"),
             index=False,
         )
         prediction_results_hat.to_csv(
-            os.path.join(outdir, f"/predictions_{dataset}_negative_or_reversed.csv"),
+            os.path.join(outdir, f"predictions_{dataset}_negative_or_reversed.csv"),
             index=False,
         )
 
         import json
 
-        with open(os.path.join(outdir, f"/metrics.json"), "w") as file:
+        with open(os.path.join(outdir, f"metrics.json"), "w") as file:
             json.dump(model_results, file)
 
         evaluator.datasets = []
