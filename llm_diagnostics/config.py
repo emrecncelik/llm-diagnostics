@@ -1,21 +1,26 @@
 MODELS = {
     "causallm": [
         "meta-llama/Llama-2-7b-hf",
+        "meta-llama/Llama-2-13b-hf",
         "meta-llama/Meta-Llama-3-8B",
         "mistralai/Mistral-7B-v0.1",
         "mistralai/Mixtral-8x7B-v0.1",
-        "state-spaces/mamba-2.8b-hf",
-        "state-spaces/mamba-790m-hf",
+        "mistralai/Mixtral-8x22B-v0.1",
         "state-spaces/mamba-130m-hf",
+        "state-spaces/mamba-790m-hf",
+        "state-spaces/mamba-2.8b-hf",
         "Qwen/Qwen1.5-1.8B",
         "Qwen/Qwen1.5-7B",
+        "Qwen/Qwen1.5-14B",
     ],
     "maskedlm": [
+        "distilbert-base-uncased",
         "bert-base-uncased",
         "bert-large-uncased",
-        "distilbert-base-uncased",
-        "albert/albert-base-v1",
-        "albert/albert-large-v1",
+        "albert/albert-base-v2",
+        "albert/albert-large-v2",
+        "albert/albert-xlarge-v2",
+        "albert/albert-xxlarge-v2",
     ],
 }
 
