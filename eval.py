@@ -19,6 +19,12 @@ def get_args():
     )
     parser.add_argument("--quantization", action="store_true", help="Quantize model")
     parser.add_argument(
+        "--output_dir",
+        default="outputs",
+        type=str,
+        help="Directory to store results.",
+    )
+    parser.add_argument(
         "--batch_size",
         default=4,
         type=int,
@@ -126,12 +132,13 @@ if __name__ == "__main__":
         if "neg" in dataset:
             result_string += f"Negation Sensitivity (Shivagunde et al., 2023): {negation_sensitivity}\n"
 
-        if not os.path.exists(f"results/{args.model_name.replace('/', '_')}"):
-            os.makedirs(f"results/{args.model_name.replace('/', '_')}")
+        outdir = os.path.join(
+            args.output_dir, f"results/{args.model_name.replace('/', '_')}"
+        )
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
 
-        with open(
-            f"results/{args.model_name.replace('/', '_')}/results_{dataset}.txt", "w"
-        ) as f:
+        with open(os.path.join(outdir, f"/results_{dataset}.txt"), "w") as f:
             f.write(result_string)
 
         print(result_string)
@@ -154,19 +161,17 @@ if __name__ == "__main__":
         print(prediction_results_hat.head())
 
         prediction_results.to_csv(
-            f"results/{args.model_name.replace('/', '_')}/predictions_{dataset}.csv",
+            os.path.join(outdir, f"/predictions_{dataset}.csv"),
             index=False,
         )
         prediction_results_hat.to_csv(
-            f"results/{args.model_name.replace('/', '_')}/predictions_{dataset}_negative_or_reversed.csv",
+            os.path.join(outdir, f"/predictions_{dataset}_negative_or_reversed.csv"),
             index=False,
         )
 
         import json
 
-        with open(
-            f"results/{args.model_name.replace('/', '_')}/metrics.json", "w"
-        ) as file:
+        with open(os.path.join(outdir, f"/metrics.json"), "w") as file:
             json.dump(model_results, file)
 
         evaluator.datasets = []
