@@ -80,14 +80,14 @@ if __name__ == "__main__":
             targets, targets_hat, probs, probs_hat, False, 0, True
         )
         sensitivity_hat = Metric.sensitivity_ettinger(
-            targets, targets_hat, probs, probs_hat, False, 0, True
+            targets, targets_hat, probs, probs_hat, True, 0, True
         )
 
         sensitivity_th = Metric.sensitivity_ettinger(
             targets, targets_hat, probs, probs_hat, False, 0.01, True
         )
         sensitivity_hat_th = Metric.sensitivity_ettinger(
-            targets, targets_hat, probs, probs_hat, False, 0.01, True
+            targets, targets_hat, probs, probs_hat, True, 0.01, True
         )
         if "neg" in dataset:
             negation_sensitivity = Metric.sensitivity_negation_shivagunde(
