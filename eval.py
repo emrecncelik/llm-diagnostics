@@ -57,13 +57,19 @@ if __name__ == "__main__":
         cache_dir=args.hf_cache_dir,
     )
     model_results = {args.model_name: {}}
+
+    def target_prefix():
+        for i in ["Qwen", "Llama-3", "mamba"]:
+            if i in args.model_name:
+                return True
+
     for dataset in DATASETS.keys():
         model_results[args.model_name][dataset] = {}
         datasets = evaluator.load_dataset(
             dataset=dataset,
             simplify_a_an=DATASETS[dataset]["simplify_a_an"],
             masked=True if evaluator.task_type == "maskedlm" else False,
-            target_prefix=" " if "mamba" in args.model_name else "",
+            target_prefix=" " if target_prefix() else "",
         )
 
         targets, preds, probs = evaluator.run_inference(

@@ -50,8 +50,8 @@ class ClozeDataset(Dataset):
         if masked:
             contexts = [c + f" {tokenizer.mask_token}." for c in contexts]
 
-        contexts = [context_prefix + c for c in contexts]
-        targets = [target_prefix + t for t in targets]
+        contexts = [context_prefix + c.strip() for c in contexts]
+        targets = [target_prefix + t.strip() for t in targets]
         self.contexts = contexts
         self.targets = targets
 
